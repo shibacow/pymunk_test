@@ -13,7 +13,7 @@ def init():
     clock = pygame.time.Clock()
     space = pymunk.Space()
     space.gravity = (0.0,-900.0)
-    return (screen,space,clock)
+    return screen,clock,space
 
 def add_ball(space):
     mass=1
@@ -21,7 +21,7 @@ def add_ball(space):
     inetia = pymunk.moment_for_circle(mass,0,radius,(0,0))
     body = pymunk.Body(mass,inetia)
     x = random.randint(120,380)
-    body.postion = x,550
+    body.position = x,550
     shape = pymunk.Circle(body,radius,(0,0))
     space.add(body,shape)
     return shape
@@ -32,9 +32,9 @@ def add_L(space):
     rotation_limit_body = pymunk.Body(body_type=pymunk.Body.STATIC)
     rotation_limit_body.position=(200,300)
     body = pymunk.Body(10,10000)
-    body.postion = (300,300)
-    l1 = pymunk.Segment(body, (-150, 0), (255.0, 0.0), 1)
-    l2 = pymunk.Segment(body, (-150.0, 0), (-150.0, 50.0), 1)
+    body.position = (300,300)
+    l1 = pymunk.Segment(body, (-150, 0), (200.0, 0.0), 1)
+    l2 = pymunk.Segment(body, (-150.0, 0), (-150.0, 50.0), 5)
 
     rotation_center_joint = pymunk.PinJoint(body,rotation_center_body,(0,0),(0,0))
     joint_limit = 25
@@ -43,12 +43,13 @@ def add_L(space):
     return l1,l2
 
 def main():
-    (screen,space,clock) = init()
+    (screen,clock,space) = init()
     lines = add_L(space)
     balls = []
     draw_options = pymunk.pygame_util.DrawOptions(screen)
+    print(draw_options)
 
-    tick_to_next_ball = 10
+    ticks_to_next_ball = 10
     running=True
     while running:
         for event in pygame.event.get():
@@ -56,11 +57,12 @@ def main():
                 sys.exit(0)
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 sys.exit(0)
-        tick_to_next_ball -= 1
-        if tick_to_next_ball <=0:
-            tick_to_next_ball = 25
+        ticks_to_next_ball -= 1
+        if ticks_to_next_ball <=0:
+            ticks_to_next_ball = 25
             ball_shape = add_ball(space)
             balls.append(ball_shape)
+
         balls_to_remove = []
         for ball in balls:
             if ball.body.position.y < 150:

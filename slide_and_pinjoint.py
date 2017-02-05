@@ -1,6 +1,6 @@
 """A L shape attached with a joint and constrained to not tip over.
 
-This example is also used in the Get Started Tutorial. 
+This example is also used in the Get Started Tutorial.
 """
 
 __docformat__ = "reStructuredText"
@@ -51,10 +51,13 @@ def main():
 
     space = pymunk.Space()
     space.gravity = (0.0, -900.0)
+    print(screen)
+    print(space)
 
-    lines = add_L(space)
+    #lines = add_L(space)
     balls = []
     draw_options = pymunk.pygame_util.DrawOptions(screen)
+    print(draw_options)
 
     ticks_to_next_ball = 10
     while True:
@@ -80,9 +83,9 @@ def main():
         for ball in balls_to_remove:
             space.remove(ball, ball.body)
             balls.remove(ball)
-
         space.step(1/50.0)
-
+        for i,body in enumerate(space.bodies):
+            print("i={} x={} y={}".format(i,body.position.x,body.position.y))
         screen.fill((255,255,255))
         space.debug_draw(draw_options)
 
