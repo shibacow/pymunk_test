@@ -16,7 +16,7 @@ def init():
     return screen,clock,space
 
 def add_ball(space):
-    mass=10000
+    mass=100
     radius=14
     inetia = pymunk.moment_for_circle(mass,0,radius,(0,0))
     body = pymunk.Body(mass,inetia)
@@ -28,8 +28,8 @@ def add_ball(space):
 
 def add_joint(space,a,b):
     rl = a.position.get_distance(b.position) * 0.9
-    stiffness = 5000.
-    damping=100
+    stiffness = 500.
+    damping=10
     j = pymunk.DampedSpring(a, b, (0,0), (0,0), rl, stiffness, damping)
     j.max_bias=100
     space.add(j)
@@ -47,7 +47,7 @@ def main():
     add_ball(space)
     add_ball(space)
     bodies=space.bodies
-    bodies=sorted(bodies,key=lambda x:x.position.x)
+    bodies=sorted(bodies,key=lambda x:x.position.x,reverse=True)
     for i,a in enumerate(bodies):
         if i+1<len(bodies):
             b=bodies[i+1]
