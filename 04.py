@@ -5,6 +5,7 @@ import pygame
 from pygame.locals import *
 import pymunk
 import pymunk.pygame_util
+import math
 
 def init():
     pygame.init()
@@ -27,25 +28,33 @@ def add_ball(space):
     return shape
 
 def add_joint(space,a,b):
-    rl = a.position.get_distance(b.position) * 0.9
-    stiffness = 500.
-    damping=10
+    #l = a.position.get_distance(b.position) * 0.9
+    #stiffness = 500.
+    #damping=10
+    #a0=30*math.pi/180.0
+    #b0=330*math.pi/180.0
+    #print("a0={} b0={}".format(a0,b0))
+    #j2 = pymunk.constraint.RotaryLimitJoint(a,b, b0,a0)
+    #space.add(j2)
+
+    
     #j = pymunk.DampedSpring(a, b, (0,0), (0,0), rl, stiffness, damping)
     #j.max_bias=100
     #space.add(j)
     #rest_angle=0
-    j2 = pymunk.constraint.RotaryLimitJoint(a,b, 1.0,100.0)
-    space.add(j2)
+    #j2 = pymunk.constraint.RotaryLimitJoint(a,b, 1.0,100.0)
+    #space.add(j2)
+    j3 = pymunk.constraint.PinJoint(a,b,(0,0),(0,0))
+    space.add(j3)
+
 def main():
     (screen,clock,space) = init()
     draw_options = pymunk.pygame_util.DrawOptions(screen)
-    print(draw_options)
     add_ball(space)
     add_ball(space)
     add_ball(space)
     add_ball(space)
-    add_ball(space)
-    add_ball(space)
+
     bodies=space.bodies
     bodies=sorted(bodies,key=lambda x:x.position.x,reverse=True)
     for i,a in enumerate(bodies):
