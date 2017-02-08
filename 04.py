@@ -37,14 +37,13 @@ def add_joint(space,a,b):
     #j2 = pymunk.constraint.RotaryLimitJoint(a,b, b0,a0)
     #space.add(j2)
 
-    
     #j = pymunk.DampedSpring(a, b, (0,0), (0,0), rl, stiffness, damping)
     #j.max_bias=100
     #space.add(j)
     #rest_angle=0
     #j2 = pymunk.constraint.RotaryLimitJoint(a,b, 1.0,100.0)
     #space.add(j2)
-    j3 = pymunk.constraint.PinJoint(a,b,(0,0),(0,0))
+    j3 = pymunk.constraint.SlideJoint(a,b,(0,0),(0,0),10,30)
     space.add(j3)
 
 def main():
