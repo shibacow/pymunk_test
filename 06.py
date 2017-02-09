@@ -12,7 +12,7 @@ import json
 
 def init():
     pygame.init()
-    screen=pygame.display.set_mode((650,650),RESIZABLE)
+    screen=pygame.display.set_mode((610,610),RESIZABLE)
     screen2=screen.subsurface(Rect(0,0,600,600))
     pygame.display.set_caption("Joints.Just wait ant the L will tips over")
     clock = pygame.time.Clock()
@@ -20,24 +20,14 @@ def init():
     space.gravity = (0.0,0.0)
     return screen,screen2,clock,space
 
-
-
 def up_position(body,dt):
     print("body={} dt={}".format(body,dt))
 def get_resource(space):
     o=json.load(open('out.json'))
     maxx=10
     radius=14
-    #inetia = pymunk.moment_for_segment(maxx,0,radius,(0,0))
-    #body = pymunk.Body(mass,0,body_type=pymunk.Body.DYNAMIC)
     body = pymunk.Body(100000,100000)
-    #pa=pymunk.autogeometry.PolylineSet()
-    #body=pymunk.Body(body_type=pymunk.Body.STATIC)
     body.position=(300,230)
-    #vec=[(float(x['x']),float(x['y'])) for x in o]
-    #poly = pymunk.Poly(body,vec)
-    #space.add(poly,body)
-    #space.add(body)
     for i,k in enumerate(o[:-1]):
         p1=k
         p2=o[i+1]
@@ -45,11 +35,11 @@ def get_resource(space):
         y1=float(p1['y'])
         x2=float(p2['x'])
         y2=float(p2['y'])
-        #pa.collect_segment((x1,y1),(x2,y2))
         l=pymunk.Segment(body,(x1,y1),(x2,y2),1)
         space.add(l)
         print("i={} k={}".format(i,k))
     return body
+
 def add_ball(space,x):
     mass=10
     radius=14
@@ -61,6 +51,7 @@ def add_ball(space,x):
     shape = pymunk.Circle(body,radius,(0,0))
     space.add(body,shape)
     return shape
+
 def static_ball(space,b):
     def mk_static_body(b,x,y):
         static_body = pymunk.Body(body_type = pymunk.Body.STATIC)
@@ -86,35 +77,33 @@ def add_joint(space,a,b):
     #j3.max_force=1000
     space.add(j3)
 
-
-def show_binfo(i,b):
-    for k in dir(b):
-        if re.search("^[^_]",k):
-            try:
-                v=getattr(b,k)
-                print("i={} k={} v={}".format(i,k,v))
-            except AttributeError as err:
-                print("k={} erro={}".format(k,err))
-def show_const(i,c):
-    for k in dir(c):
-        if re.search("^[^_]",k):
-            try:
-                v=getattr(c,k)
-                print("i={} k={} v={}".format(i,k,v))
-            except AttributeError as err:
-                print("k={} erro={}".format(k,err))
-
-def show_v(i,b):
-    av=b.angular_velocity
-    print("i={} av={}".format(i,av))
-
-def move_it(space,x):
-    for b in space.bodies:
-        b.position.x=b.position.x-x
-    #for s in space.shapes:
-        #s.position.x=s.position.x-x
-        #print("shape={}".format(s))
-
+class AnimateResize(object):
+    def __init__(self,outr_init,inner_init,sz):
+        self.initx=outr_init[0]
+        self.inity=outr_init[1]
+        self.innerx=inner_init[0]
+        self.innery=inner_init[1]
+        self.sx=sz[0]
+        self.sy=sz[1]
+        self.velocity_x=(self.sx-self.initx)/10
+        self.velocity_y=(self.sy-self.inity)/10
+        self.scale=[1,2,3,4]
+        self.is_finish=False
+    def update(self):
+        d=self.scale.pop()
+        self.sx=self.sx - d*self.velocity_x
+        self.sy=self.sy - d*self.velocity_y
+        screen = pygame.display.set_mode((int(self.sx), int(self.sy)),RESIZABLE)
+        screen2=screen.subsurface(Rect(0,0,int(self.innerx),int(self.innery)))
+        draw_options = pymunk.pygame_util.DrawOptions(screen2)
+        if not self.scale:
+            self.is_finish=True
+        return (screen,screen2,draw_options)
+    def start(self,event):
+        screen = pygame.display.set_mode((event.w, event.h),RESIZABLE)
+        screen2=screen.subsurface(Rect(0,0,int(self.innerx),int(self.innery)))
+        draw_options = pymunk.pygame_util.DrawOptions(screen2)
+        return (screen,screen2,draw_options)
 
 def main():
     (screen,screen2,clock,space) = init()
@@ -126,22 +115,19 @@ def main():
     add_ball(space,200)
     add_ball(space,150)
     add_ball(space,100)
-
-
     bodies=space.bodies
     bodies=sorted(bodies,key=lambda x:x.position.x,reverse=True)
     for i,a in enumerate(bodies):
         if i+1<len(bodies):
             b=bodies[i+1]
             add_joint(space,a,b)
-    #for a in bodies:
-    #    static_ball(space,a)
     running=True
     is_interactive = False
     constraints = space.constraints
     back_recouce=get_resource(space)
     camera_x=0
     verocity=3
+    ar=None
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -149,44 +135,33 @@ def main():
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 sys.exit(0)
             elif event.type ==  MOUSEBUTTONDOWN and not is_interactive:
-                is_interactive = True
+                #is_interactive = True
+                pass
             elif event.type == MOUSEBUTTONUP:
                 is_interactive = False
             elif event.type == VIDEORESIZE:
-                # The main code that resizes the window:
-                # (recreate the window with the new size)
-                screen = pygame.display.set_mode((event.w, event.h),
-                                              pygame.RESIZABLE)
-                print("w={} h={}".format(event.w,event.h))
-       if is_interactive:
+                ar=AnimateResize((610,610),(600,600),(event.w,event.h))
+                (screen,screen2,draw_options)=ar.start(event)
+        if is_interactive:
             mouse_pos = pymunk.pygame_util.get_mouse_pos(screen)
             bd = space.point_query_nearest(mouse_pos, 10, pymunk.ShapeFilter())
             if bd:
                 bd.shape.body.position=mouse_pos
-        #back_recouce.position.x=back_recouce.position.x - 10.0
-        #ax=back_recouce.position.x
-        #ay=back_recouce.position.y
-        #back_recouce.position.x=ax-100
-        #print("ax={} ay={}".format(ax,ay))
-        #move_it(space,10)
+        if ar and not ar.is_finish:
+            (screen,screen2,draw_options)=ar.update()
+        if ar and ar.is_finish:
+            ar=None
         space.step(1/50.0)
         camera_x+=verocity
 
         screen.fill((255,255,255))
         screen2.fill((0,0,0))
-        #for b in space.bodies:
-        #    draw_options.draw_circle(b.position,0,14,(255,0,0),(0,0,255))
         sl=space.shapes
         sl=[s for s in sl if isinstance(s,pymunk.shapes.Segment)]
         for s in sl:
             p0=(s.a[0]-verocity,s.a[1])
             p1=(s.b[0]-verocity,s.b[1])
-            #draw_options.draw_segment(p0,p1,(200,150,150))
             s.unsafe_set_endpoints(p0,p1)
-        #for i,s in enumerate(sl[:-1]):
-        #    b=sl[i+1]
-        #    #draw_options.draw_segment(a.position,b.position,(200,150,150))
-
         space.debug_draw(draw_options)
         pygame.display.flip()
         clock.tick(50)
