@@ -29,27 +29,26 @@ def get_resource(space):
     radius=14
     #inetia = pymunk.moment_for_segment(maxx,0,radius,(0,0))
     #body = pymunk.Body(mass,0,body_type=pymunk.Body.DYNAMIC)
-    body = pymunk.Body(10,10000)
+    body = pymunk.Body(100000,100000)
     #pa=pymunk.autogeometry.PolylineSet()
     #body=pymunk.Body(body_type=pymunk.Body.STATIC)
-    body.position=(300,300)
-    body.velocity=vec2d.Vec2d(-100.0,0.0)
-    body.update_position=up_position
-    vec=[(float(x['x']),float(x['y'])) for x in o]
-    poly = pymunk.Poly(body,vec)
-    space.add(poly,body)
-    #for i,k in enumerate(o[:-1]):
-    #    p1=k
-    #    p2=o[i+1]
-     #   x1=float(p1['x'])
-     #   y1=float(p1['y'])
-     #   x2=float(p2['x'])
-     #   y2=float(p2['y'])
+    body.position=(300,230)
+    #vec=[(float(x['x']),float(x['y'])) for x in o]
+    #poly = pymunk.Poly(body,vec)
+    #space.add(poly,body)
+    #space.add(body)
+    for i,k in enumerate(o[:-1]):
+        p1=k
+        p2=o[i+1]
+        x1=float(p1['x'])
+        y1=float(p1['y'])
+        x2=float(p2['x'])
+        y2=float(p2['y'])
         #pa.collect_segment((x1,y1),(x2,y2))
-        #l=pymunk.Segment(body,(x1,y1),(x2,y2),1)
-        #space.add(l)
-        #print("i={} k={}".format(i,k))
-    return poly
+        l=pymunk.Segment(body,(x1,y1),(x2,y2),1)
+        space.add(l)
+        print("i={} k={}".format(i,k))
+    return body
 def add_ball(space,x):
     mass=10
     radius=14
@@ -82,8 +81,8 @@ def static_ball(space,b):
 
 def add_joint(space,a,b):
     j3 = pymunk.constraint.PinJoint(a,b,(0,0),(0,0))
-    j3.collide_bodies=False
-    j3.max_force=1000
+    #j3.collide_bodies=False
+    #j3.max_force=1000
     space.add(j3)
 
 
@@ -134,12 +133,14 @@ def main():
         if i+1<len(bodies):
             b=bodies[i+1]
             add_joint(space,a,b)
-    for a in bodies:
-        static_ball(space,a)
+    #for a in bodies:
+    #    static_ball(space,a)
     running=True
     is_interactive = False
     constraints = space.constraints
     back_recouce=get_resource(space)
+    camera_x=0
+    verocity=3
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -160,9 +161,23 @@ def main():
         #ay=back_recouce.position.y
         #back_recouce.position.x=ax-100
         #print("ax={} ay={}".format(ax,ay))
-        move_it(space,10)
+        #move_it(space,10)
         space.step(1/50.0)
+        camera_x+=verocity
         screen.fill((255,255,255))
+        #for b in space.bodies:
+        #    draw_options.draw_circle(b.position,0,14,(255,0,0),(0,0,255))
+        sl=space.shapes
+        sl=[s for s in sl if isinstance(s,pymunk.shapes.Segment)]
+        for s in sl:
+            p0=(s.a[0]-verocity,s.a[1])
+            p1=(s.b[0]-verocity,s.b[1])
+            #draw_options.draw_segment(p0,p1,(200,150,150))
+            s.unsafe_set_endpoints(p0,p1)
+        #for i,s in enumerate(sl[:-1]):
+        #    b=sl[i+1]
+        #    #draw_options.draw_segment(a.position,b.position,(200,150,150))
+
         space.debug_draw(draw_options)
         pygame.display.flip()
         clock.tick(50)
