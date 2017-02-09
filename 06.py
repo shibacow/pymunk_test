@@ -12,12 +12,13 @@ import json
 
 def init():
     pygame.init()
-    screen=pygame.display.set_mode((600,600))
+    screen=pygame.display.set_mode((650,650),RESIZABLE)
+    screen2=screen.subsurface(Rect(0,0,600,600))
     pygame.display.set_caption("Joints.Just wait ant the L will tips over")
     clock = pygame.time.Clock()
     space = pymunk.Space()
     space.gravity = (0.0,0.0)
-    return screen,clock,space
+    return screen,screen2,clock,space
 
 
 
@@ -116,8 +117,8 @@ def move_it(space,x):
 
 
 def main():
-    (screen,clock,space) = init()
-    draw_options = pymunk.pygame_util.DrawOptions(screen)
+    (screen,screen2,clock,space) = init()
+    draw_options = pymunk.pygame_util.DrawOptions(screen2)
     add_ball(space,400)
     add_ball(space,350)
     add_ball(space,300)
@@ -151,7 +152,13 @@ def main():
                 is_interactive = True
             elif event.type == MOUSEBUTTONUP:
                 is_interactive = False
-        if is_interactive:
+            elif event.type == VIDEORESIZE:
+                # The main code that resizes the window:
+                # (recreate the window with the new size)
+                screen = pygame.display.set_mode((event.w, event.h),
+                                              pygame.RESIZABLE)
+                print("w={} h={}".format(event.w,event.h))
+       if is_interactive:
             mouse_pos = pymunk.pygame_util.get_mouse_pos(screen)
             bd = space.point_query_nearest(mouse_pos, 10, pymunk.ShapeFilter())
             if bd:
@@ -164,7 +171,9 @@ def main():
         #move_it(space,10)
         space.step(1/50.0)
         camera_x+=verocity
+
         screen.fill((255,255,255))
+        screen2.fill((0,0,0))
         #for b in space.bodies:
         #    draw_options.draw_circle(b.position,0,14,(255,0,0),(0,0,255))
         sl=space.shapes
